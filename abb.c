@@ -138,34 +138,23 @@ typedef struct abb_iter {
     pila_t* pila;
 } abb_iter_t;
 
-void apilar_MAGICAMENTE_de_mayor_a_menor(pila_t* pila, abb_nodo_t* nodo) {
+void apilar_de_mayor_a_menor(pila_t* pila, abb_nodo_t* nodo) {
     if(!nodo) return;
 
     if(nodo->der =! NULL)
-        return apilar_ultimo_derecho(nodo->der);
+        return apilar_de_mayor_a_menor(nodo->der);
 
     pila_apilar(nodo);
 
     if(nodo->izq != NULL)
-        return apilar_ultimo_derecho(nodo->izq);
+        return apilar_de_mayor_a_menor(nodo->izq);
 
     return;
 }
 
-bool apilar_izquierdos(pila_t* pila, abb_nodo_t* nodo) {
-    abb_nodo_t* temp = nodo;
-
-    while(temp =! NULL)
-    {
-        pila_apilar(temp);
-        temp = temp->izq;
-    }
-
-    return true;
-}
-
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol) {
     if(!arbol) return NULL;
+    abb_nodo_t* raiz = arbol->raiz;
 
     abb_iter_t* iter = malloc(sizeof(abb_iter_t));
     if(!iter) return NULL;
@@ -177,8 +166,9 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol) {
         return NULL;
     }
 
+    apilar_de_mayor_a_menor(pila, raiz);
+
     iter->pila = pila;
-    apilar_izquierdos(pila, arbol->raiz);
 
     return iter;
 }
@@ -186,20 +176,29 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol) {
 bool abb_iter_in_avanzar(abb_iter_t *iter) {
     if(!iter || pila_esta_vacia(iter->pila)) return false;
 
-    abb_nodo_t* nodo = pila_ver_tope(iter->pila);
-    if(nodo->der != NULL && nodo->der->izq != NULL)
-        return apilar_izquierdos(iter->pila, nodo->der);
-
-    nodo = pila_desapilar(iter->pila);
-    pila_apilar();
+    bool desapilado = pila_desapilar(iter->pila);
+    if (!desapilado)
+    	return false;
 
     return true;
 }
 
 
-const char *abb_iter_in_ver_actual(const abb_iter_t *iter);
-bool abb_iter_in_al_final(const abb_iter_t *iter);
-void abb_iter_in_destruir(abb_iter_t* iter);
+const char *abb_iter_in_ver_actual(const abb_iter_t *iter){
+	if(!iter || pila_esta_vacia(iter->pila)) return NULL;
+
+	abb_nodo_t* actual = pila_ver_tope(iter->pila);
+
+	return pila->clave;
+}
+bool abb_iter_in_al_final(const abb_iter_t *iter){
+	return pila_esta_vacia(iter->pila);
+}
+
+void abb_iter_in_destruir(abb_iter_t* iter){
+	pila_destruir(iter->pila);
+	free(iter);
+}
 
 
 
