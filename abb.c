@@ -138,6 +138,20 @@ typedef struct abb_iter {
     pila_t* pila;
 } abb_iter_t;
 
+void apilar_MAGICAMENTE_de_mayor_a_menor(pila_t* pila, abb_nodo_t* nodo) {
+    if(!nodo) return;
+
+    if(nodo->der =! NULL)
+        return apilar_ultimo_derecho(nodo->der);
+
+    pila_apilar(nodo);
+
+    if(nodo->izq != NULL)
+        return apilar_ultimo_derecho(nodo->izq);
+
+    return;
+}
+
 bool apilar_izquierdos(pila_t* pila, abb_nodo_t* nodo) {
     abb_nodo_t* temp = nodo;
 
