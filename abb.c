@@ -43,9 +43,9 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
 }
 
 bool guardar_recursivo(abb_t* arbol, abb_nodo_t* nodo, abb_nodo_t* raiz) {
-    if(!arbol->raiz)
+    if(!raiz)
     {
-        arbol->raiz = nodo;
+        raiz = nodo;
         arbol->tam++;
         return true;
     }
@@ -66,21 +66,21 @@ bool guardar_recursivo(abb_t* arbol, abb_nodo_t* nodo, abb_nodo_t* raiz) {
         if(!arbol->raiz->der)
         {
             arbol->tam++;
-            arbol->raiz->der = nodo;
+            raiz->der = nodo;
             return true;
         }
         else
-            return guardar_recursivo(arbol, nuevo_nodo, arbol->raiz->der);
+            return guardar_recursivo(arbol, nuevo_nodo, raiz->der);
     }
 
-    if(!arbol->raiz->izq)
+    if(!raiz->izq)
     {
         arbol->tam++;
-        arbol->raiz->izq = nodo;
+        raiz->izq = nodo;
         return true
     }
 
-    return guardar_recursivo(arbol, nuevo_nodo, arbol->raiz->izq);
+    return guardar_recursivo(arbol, nuevo_nodo, raiz->izq);
 }
 
 void *abb_borrar(abb_t *arbol, const char *clave);
@@ -120,9 +120,7 @@ size_t abb_cantidad(abb_t *arbol) {
 }
 
 void abb_destruir(abb_t *arbol) {
-    if(!arbol) return;
-
-    if(arbol->destruir)
+    // TODO:
 }
 
 /*
@@ -140,8 +138,7 @@ typedef struct abb_iter {
     pila_t* pila;
 } abb_iter_t;
 
-bool apilar_izquierdos(pila_t* pila, abb_nodo_t* nodo)
-{
+bool apilar_izquierdos(pila_t* pila, abb_nodo_t* nodo) {
     abb_nodo_t* temp = nodo;
 
     while(temp =! NULL)
@@ -183,7 +180,6 @@ bool abb_iter_in_avanzar(abb_iter_t *iter) {
     pila_apilar();
 
     return true;
-
 }
 
 
