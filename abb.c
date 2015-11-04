@@ -90,8 +90,6 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
     nuevo_nodo->der = NULL;
     nuevo_nodo->izq = NULL;
 
-    //if(!arbol->raiz) {arbol->raiz = nuevo_nodo; arbol->tam++; return true;}
-
     return guardar_recursivo(arbol, nuevo_nodo, &arbol->raiz);
 }
 
@@ -105,6 +103,13 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
     return obtener_recursivo(arbol, nodo->izq, clave);
 }*/
 
+/*abb_nodo_t* ultimo_izq(abb_nodo_t* nodo) {
+    abb_nodo_t* temp = nodo;
+    while(temp->izq != NULL)
+        temp = temp->izq;
+    return temp;
+}*/
+
 abb_nodo_t* obtener_nodo_recursivo(const abb_t* arbol, abb_nodo_t* nodo, const char* clave) {
     if(!nodo) return NULL;
     int comp = arbol->comparar(nodo->clave, clave);
@@ -114,13 +119,6 @@ abb_nodo_t* obtener_nodo_recursivo(const abb_t* arbol, abb_nodo_t* nodo, const c
         return obtener_nodo_recursivo(arbol, nodo->der, clave);
     return obtener_nodo_recursivo(arbol, nodo->izq, clave);
 }
-
-/*abb_nodo_t* ultimo_izq(abb_nodo_t* nodo) {
-    abb_nodo_t* temp = nodo;
-    while(temp->izq != NULL)
-        temp = temp->izq;
-    return temp;
-}*/
 
 void* abb_obtener(const abb_t *arbol, const char *clave) {
     if(!arbol || !clave) return NULL;
@@ -155,24 +153,34 @@ size_t abb_cantidad(abb_t *arbol) {
     return arbol->tam;
 }
 
-abb_nodo_t* mayor_nodo(abb_nodo_t* nodo1, abb_nodo_t* nodo2) {
+abb_nodo_t* mayor_nodo(abb_nodo_t* nodo1) {
     if(!nodo1->der)
-    {
-        if(nodo2)
-            nodo2->der = nodo1->izq;
         return nodo1;
+
+    if(!nodo1->der->der)
+    {
+        abb_nodo_t** temp = &(nodo1)->der;
+        nodo1->der = nodo1->der->izq;
+        return *temp;
     }
-    return mayor_nodo(nodo1->der, nodo1);
+    return mayor_nodo(nodo1->der);
 }
 
-abb_nodo_t* menor_nodo(abb_nodo_t* nodo1, abb_nodo_t* nodo2) {
+abb_nodo_t* menor_nodo(abb_nodo_t* nodo1) {
     if(!nodo1->izq)
-    {
-        if(nodo2)
-            nodo2->izq = nodo1->der;
         return nodo1;
+
+    if(!nodo1->izq->izq)
+    {
+        /*abb_nodo_t* temp = nodo1->izq;
+        nodo1->izq = nodo1->izq->der;
+        return temp;*/
+
+        abb_nodo_t** temp = &(nodo1)->izq;
+        nodo1->izq = nodo1->izq->der;
+        return *temp;
     }
-    return mayor_nodo(nodo1->izq, nodo1);
+    return menor_nodo(nodo1->izq);
 }
 
 void* abb_borrar(abb_t *arbol, const char *clave) {
@@ -198,21 +206,29 @@ void* abb_borrar(abb_t *arbol, const char *clave) {
     // Caso 2: No existe nodo derecho entonces implementar mayor por izquierda.
     if(!nodo->der)
     {
-        nodo_reemplazador = mayor_nodo(nodo->izq, NULL);
         if(!nodo->izq->der)
-            nodo->izq = nodo->izq->izq;
+        {
+            nodo_reemplazador = nodo->der;
+             nodo->izq = nodo->izq->izq;
+        }
+        else
+            nodo_reemplazador = mayor_nodo(nodo->izq); 
     }
     else
     {
         // Caso 3: No existe nodo izquierdo entonces implementar menor por derecha.
-        nodo_reemplazador = menor_nodo(nodo->der, NULL);
         if(!nodo->der->izq)
+        {
+            nodo_reemplazador = nodo->der;
             nodo->der = nodo->der->der;
+        }
+        else
+            nodo_reemplazador = menor_nodo(nodo->der);    
     }
 
     nodo->clave = nodo_reemplazador->clave;
     nodo->dato = nodo_reemplazador->dato;
-    //free(nodo_reemplazador);
+    free(nodo_reemplazador);
     arbol->tam--;
     return dato_devolver;
 }
@@ -301,7 +317,7 @@ void abb_in_order_recursivo(abb_nodo_t* nodo, bool visitar(const char *, void *,
 }
 
 void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra) {
-    if(!arbol) return NULL;
+    if(!arbol) return;
     abb_in_order_recursivo(arbol->raiz, visitar, extra);
 }
 
