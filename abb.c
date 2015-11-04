@@ -159,9 +159,9 @@ abb_nodo_t* mayor_nodo(abb_nodo_t* nodo1) {
 
     if(!nodo1->der->der)
     {
-        abb_nodo_t** temp = &(nodo1)->der;
+        abb_nodo_t* temp = nodo1->der;
         nodo1->der = nodo1->der->izq;
-        return *temp;
+        return temp;
     }
     return mayor_nodo(nodo1->der);
 }
@@ -172,13 +172,9 @@ abb_nodo_t* menor_nodo(abb_nodo_t* nodo1) {
 
     if(!nodo1->izq->izq)
     {
-        /*abb_nodo_t* temp = nodo1->izq;
+        abb_nodo_t* temp = nodo1->izq;
         nodo1->izq = nodo1->izq->der;
-        return temp;*/
-
-        abb_nodo_t** temp = &(nodo1)->izq;
-        nodo1->izq = nodo1->izq->der;
-        return *temp;
+        return temp;
     }
     return menor_nodo(nodo1->izq);
 }
@@ -190,12 +186,19 @@ void* abb_borrar(abb_t *arbol, const char *clave) {
     abb_nodo_t* nodo = obtener_nodo_recursivo(arbol, arbol->raiz, clave);
     if(!nodo) return NULL;
     void* dato_devolver = nodo->dato;
+    bool es_raiz = false;
+
+    if(arbol->comparar(nodo->clave, arbol->raiz->clave) == 0)
+        es_raiz = true;
+
     free(nodo->clave);
 
     // 2) Reemplazo de par Dato/Clave
     // Caso 1: No tiene hijos
     if(!nodo->der && !nodo->izq)
     {
+        if(es_raiz)
+            arbol->raiz = NULL;
         free(nodo);
         arbol->tam--;
         return dato_devolver;
@@ -212,7 +215,7 @@ void* abb_borrar(abb_t *arbol, const char *clave) {
              nodo->izq = nodo->izq->izq;
         }
         else
-            nodo_reemplazador = mayor_nodo(nodo->izq); 
+            nodo_reemplazador = mayor_nodo(nodo->izq);
     }
     else
     {
@@ -223,7 +226,7 @@ void* abb_borrar(abb_t *arbol, const char *clave) {
             nodo->der = nodo->der->der;
         }
         else
-            nodo_reemplazador = menor_nodo(nodo->der);    
+            nodo_reemplazador = menor_nodo(nodo->der);
     }
 
     nodo->clave = nodo_reemplazador->clave;
@@ -295,6 +298,7 @@ void abb_destruir_recursivo(abb_nodo_t* nodo, abb_destruir_dato_t destruir_dato)
 void abb_destruir(abb_t *arbol) {
     if(!arbol) return;
     abb_destruir_recursivo(arbol->raiz, arbol->destruir);
+    free(arbol);
 }
 
 /*

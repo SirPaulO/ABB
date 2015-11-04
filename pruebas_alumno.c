@@ -75,7 +75,6 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     /* Destruye el abb y crea uno nuevo que sí libera */
     abb_destruir(abb);
 
-    return;
     abb = abb_crear(strcmp, free);
 
     /* Inserta 'largo' parejas en el abb */
