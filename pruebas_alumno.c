@@ -60,13 +60,13 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     if (debug) print_test("Prueba abb pertenece y obtener muchos elementos", ok);
     if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
 
-    abb_destruir(abb);
-    return;
+    //abb_destruir(abb);
 
     /* Verifica que borre y devuelva los valores correctos */
     for (size_t i = 0; i < largo; i++) {
         ok = abb_borrar(abb, claves[i]) == valores[i];
-        if (!ok) break;
+        if (!ok)
+            break;
     }
 
     if (debug) print_test("Prueba abb borrar muchos elementos", ok);
@@ -74,6 +74,8 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     /* Destruye el abb y crea uno nuevo que sí libera */
     abb_destruir(abb);
+
+    return;
     abb = abb_crear(strcmp, free);
 
     /* Inserta 'largo' parejas en el abb */
