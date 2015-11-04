@@ -93,23 +93,6 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
     return guardar_recursivo(arbol, nuevo_nodo, &arbol->raiz);
 }
 
-/*void* obtener_recursivo(const abb_t* arbol, abb_nodo_t* nodo, const char* clave) {
-    if(!nodo) return NULL;
-    int comp = arbol->comparar(nodo->clave, clave);
-    if(comp == 0)
-        return nodo->dato;
-    if(comp > 0)
-        return obtener_recursivo(arbol, nodo->der, clave);
-    return obtener_recursivo(arbol, nodo->izq, clave);
-}*/
-
-/*abb_nodo_t* ultimo_izq(abb_nodo_t* nodo) {
-    abb_nodo_t* temp = nodo;
-    while(temp->izq != NULL)
-        temp = temp->izq;
-    return temp;
-}*/
-
 abb_nodo_t* obtener_nodo_recursivo(const abb_t* arbol, abb_nodo_t* nodo, const char* clave) {
     if(!nodo) return NULL;
     int comp = arbol->comparar(nodo->clave, clave);
@@ -126,21 +109,6 @@ void* abb_obtener(const abb_t *arbol, const char *clave) {
     abb_nodo_t* nodo = obtener_nodo_recursivo(arbol, arbol->raiz, clave);
     return !nodo ? NULL : nodo->dato;
 }
-
-/*bool pertenece_recursivo(const abb_t* arbol, abb_nodo_t* nodo, const char* clave) {
-    if(!nodo) return false;
-    int comp = arbol->comparar(nodo->clave, clave);
-    if(comp == 0)
-        return true;
-    if(comp > 0)
-        return obtener_recursivo(arbol, nodo->der, clave);
-    return obtener_recursivo(arbol, nodo->izq, clave);
-}
-
-bool abb_pertenece(const abb_t *arbol, const char *clave) {
-    if(!arbol || !clave) return false;
-        return pertenece_recursivo(arbol, arbol->raiz, clave);
-}*/
 
 bool abb_pertenece(const abb_t *arbol, const char *clave) {
     if(!arbol || !clave) return false;
@@ -235,54 +203,6 @@ void* abb_borrar(abb_t *arbol, const char *clave) {
     arbol->tam--;
     return dato_devolver;
 }
-
-/*void* abb_borrar(abb_t *arbol, const char *clave) {
-    if(!arbol || !clave) return NULL;
-
-    abb_nodo_t* nodo = obtener_nodo_recursivo(arbol, arbol->raiz, clave);
-    if(!nodo) return NULL;
-
-    void* dato_devolver = nodo->dato;
-
-    // Caso 1: Hoja
-    if(!nodo->der && !nodo->izq)
-    {
-        free(nodo);
-        return dato_devolver;
-    }
-
-    // nodo_aux = al ultimo IZQ del primer DER
-    // Si nodo_aux tiene derecha => el que me apunta, tiene que apuntar
-    // a mi derecha
-
-    // Caso 2: Nada a la derecha
-    abb_nodo_t* nodo_aux = nodo;
-    if(!nodo->der)
-    {
-        // TODO: DESAPUNTAR EL QUE APUNTA AL ULTIMO DE LA IZQ
-        nodo = ultimo_izq(nodo);
-        nodo->izq = nodo_aux->izq;
-        free(nodo_aux);
-    }
-    else
-    {
-        // Caso 3: Existe algo a la der del ultimo izq del primer der
-        nodo_aux = ULTIMO DE LA IZQ DEL PRIMER DERECHO
-
-        // Liberar copia de la clave.
-        free(nodo->clave);
-
-        // Mover contenido del nodo_aux al nodo.
-        nodo->clave = nodo_aux->clave;
-        nodo->dato = nodo_aux->dato;
-
-        nodo_aux_2 = nodo_aux;
-
-        nodo_aux = nodo_aux->der;
-        free(nodo_aux_2);
-    }
-    return dato_devolver;
-}*/
 
 void abb_destruir_recursivo(abb_nodo_t* nodo, abb_destruir_dato_t destruir_dato) {
     if(!nodo) return;
@@ -383,9 +303,3 @@ void abb_iter_in_destruir(abb_iter_t* iter) {
     pila_destruir(iter->pila, NULL);
     free(iter);
 }
-
-
-
-
-
-
