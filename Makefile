@@ -1,5 +1,5 @@
 # NOMBRE DEL EJECUTABLE DEL TP
-EXEC =  tp1
+EXEC =  abb
 CC = gcc
 CFLAGS = -Wall -Werror -pedantic -std=c99 -g
 BIN = $(filter-out $(EXEC).c, $(wildcard *.c))

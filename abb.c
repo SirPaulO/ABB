@@ -44,65 +44,34 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato) {
 }
 
 /* Copia la clave en memoria */
-char* copiar_clave(const char *clave) {
+char* copiar_clave2(const char *clave) {
     char* clave_copiada = malloc(sizeof(char) * strlen(clave)+1);
     strcpy(clave_copiada, clave);
     return clave_copiada;
 }
 
-bool guardar_nodo(abb_t* arbol, abb_nodo_t* nodo, abb_nodo_t** raiz, bool actualizar_nodo) {
-    if(actualizar_nodo)
+abb_nodo_t* abb_obtener_nodo(abb_comparar_clave_t cmp, const char *clave, abb_nodo_t* nodo, abb_nodo_t*** padre) {
+    if(!nodo)
+        return NULL;
+
+    int comp = cmp(clave, nodo->clave);
+
+    // A la derecha del nodo actual
+    if(comp > 0)
     {
-        if(arbol->destruir)
-            arbol->destruir((*raiz)->dato);
-        (*raiz)->dato = nodo->dato;
-        free(nodo->clave);
-        free(nodo);
+        if(padre)
+            *padre = &nodo->der;
+        return abb_obtener_nodo(cmp, clave, nodo->der, padre);
     }
-    else
+    else if(comp < 0)
     {
-        *raiz = nodo;
-        arbol->tam++;
-    }
-
-    //arbol->cache = raiz;
-
-    if( arbol->mayor && arbol->comparar(nodo->clave, (*arbol->mayor)->clave ) > 0 )
-        arbol->mayor = raiz;
-
-    if( arbol->menor && arbol->comparar(nodo->clave, (*arbol->menor)->clave ) < 0 )
-        arbol->menor = raiz;
-
-    //arbol->cache = &nodo;
-    return true;
-}
-
-bool guardar_recursivo(abb_t* arbol, abb_nodo_t* nodo, abb_nodo_t** raiz) {
-    // Caso base: No hay raiz
-    if(!(*raiz))
-        return guardar_nodo(arbol, nodo, raiz, false);
-
-    int comp = arbol->comparar((*raiz)->clave, nodo->clave);
-
-    // Caso 1: Misma clave
-    if(comp == 0)
-        return guardar_nodo(arbol, nodo, raiz, true);
-
-    // Caso 2: Clave nueva es mayor
-    if(comp < 0)
-    {
-        // Caso 2.1: Recursivo por derecha o guardar?
-        if(!(*raiz)->der)
-            return guardar_nodo(arbol, nodo, &(*raiz)->der, false);
-        else
-            return guardar_recursivo(arbol, nodo, &(*raiz)->der);
+        if(padre)
+            *padre = &nodo->izq;
+        return abb_obtener_nodo(cmp, clave, nodo->izq, padre);
     }
 
-    // Caso 3: Analogico al Caso 2
-    if(!(*raiz)->izq)
-        return guardar_nodo(arbol, nodo, &(*raiz)->izq, false);
-
-    return guardar_recursivo(arbol, nodo, &(*raiz)->izq);
+    // A esta altura deberia tener el nodo que busco a la izquierda o la derecha y guardado en la variable nodo_buscado
+    return nodo;
 }
 
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
@@ -111,20 +80,33 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
     abb_nodo_t* nuevo_nodo = malloc(sizeof(abb_nodo_t));
     if(!nuevo_nodo) return false;
 
-    nuevo_nodo->clave = copiar_clave(clave);
+    nuevo_nodo->clave = copiar_clave2(clave);
     nuevo_nodo->dato = dato;
     nuevo_nodo->der = NULL;
     nuevo_nodo->izq = NULL;
 
-    int comp;
+    abb_nodo_t** nodo_buscado_puntero = &arbol->raiz;
+    abb_nodo_t* nodo_buscado = abb_obtener_nodo(arbol->comparar, clave, arbol->raiz, &nodo_buscado_puntero);
 
-    /*if(arbol->cache)
+    if(!nodo_buscado)
     {
-        comp = arbol->comparar(nuevo_nodo->clave, (*arbol->cache)->clave);
+        *nodo_buscado_puntero = nuevo_nodo;
+        arbol->tam++;
+    }
+    else
+    {
+        if(arbol->destruir)
+            arbol->destruir(nodo_buscado->dato);
+        nodo_buscado->dato = nuevo_nodo->dato;
+        free(nuevo_nodo->clave);
+        free(nuevo_nodo);
+    }
 
-        if( comp == 0 )
-            return guardar_recursivo(arbol, nuevo_nodo, arbol->cache);
-    }*/
+    return true;
+
+    /*
+    // COMPARAR
+    int comp;
 
     if(arbol->mayor)
     {
@@ -142,88 +124,58 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
             return guardar_recursivo(arbol, nuevo_nodo, arbol->menor);
     }
 
+    // GUARDAR
+    if( arbol->mayor && arbol->comparar(nodo->clave, (*arbol->mayor)->clave ) > 0 )
+        arbol->mayor = raiz;
 
-    //if( *(arbol->cache) != NULL
-    //   && arbol->comparar( ((abb_nodo_t*)arbol->cache)->clave, nuevo_nodo->clave) == 0)
-    //    return guardar_recursivo(arbol, nuevo_nodo, arbol->cache);
-
-    return guardar_recursivo(arbol, nuevo_nodo, &arbol->raiz);
-}
-
-abb_nodo_t* obtener_nodo_recursivo(const abb_t* arbol, abb_nodo_t* nodo, const char* clave) {
-    if(!nodo) return NULL;
-    int comp = arbol->comparar(nodo->clave, clave);
-    if(comp == 0)
-    {
-        //*arbol->cache = nodo;
-        return nodo;
-    }
-    if(comp < 0)
-        return obtener_nodo_recursivo(arbol, nodo->der, clave);
-    return obtener_nodo_recursivo(arbol, nodo->izq, clave);
+    if( arbol->menor && arbol->comparar(nodo->clave, (*arbol->menor)->clave ) < 0 )
+        arbol->menor = raiz;
+    */
 }
 
 void* abb_obtener(const abb_t *arbol, const char *clave) {
     if(!arbol || !clave) return NULL;
-
-    /*if(arbol->cache && arbol->comparar(clave, (*arbol->cache)->clave) == 0)
-        return (*arbol->cache)->dato;*/
-
-    abb_nodo_t* nodo = obtener_nodo_recursivo(arbol, arbol->raiz, clave);
-    return !nodo ? NULL : nodo->dato;
+    abb_nodo_t* nodo = abb_obtener_nodo(arbol->comparar, clave, arbol->raiz, NULL);
+    return nodo ? nodo->dato : NULL;
 }
 
 bool abb_pertenece(const abb_t *arbol, const char *clave) {
     if(!arbol || !clave) return false;
 
-    /*if(arbol->cache && arbol->comparar(clave, (*arbol->cache)->clave) == 0)
-        return true;*/
-
-    if( !obtener_nodo_recursivo(arbol, arbol->raiz, clave) )
-        return false;
-    return true;
+    return abb_obtener_nodo(arbol->comparar, clave, arbol->raiz, NULL) ? true : false;
 }
 
 size_t abb_cantidad(abb_t *arbol) {
     return arbol->tam;
 }
 
-void* abb_borrar_recursivo(abb_t *arbol, const char *clave, abb_nodo_t* nodo, abb_nodo_t** puntero) {
-    if(!nodo) return NULL;
+void* abb_borrar(abb_t *arbol, const char *clave) {
+    if(!arbol || !clave || !arbol->raiz) return NULL;
 
-    int comp = arbol->comparar(clave, nodo->clave);
+    abb_nodo_t** nodo_buscado_puntero = &arbol->raiz;
+    abb_nodo_t* nodo_buscado = abb_obtener_nodo(arbol->comparar, clave, arbol->raiz, &nodo_buscado_puntero);
 
-    // A la derecha del nodo actual
-    if(comp > 0)
-    {
-        return abb_borrar_recursivo(arbol, clave, nodo->der, &nodo->der);
-    }
-    else if(comp < 0)
-    {
-        return abb_borrar_recursivo(arbol, clave, nodo->izq, &nodo->izq);
-    }
+    if(!nodo_buscado) return NULL;
 
-    // A esta altura deberia tener el nodo que busco a la izquierda o la derecha y guardado en la variable nodo_buscado
-
-    void* dato_devolver = nodo->dato;
-    free(nodo->clave);
+    void* dato_devolver = nodo_buscado->dato;
+    free(nodo_buscado->clave);
 
     // 2) Redireccion de punteros izq/der
     // Caso 1: No tiene hijos
-    if(!nodo->der && !nodo->izq)
+    if(!nodo_buscado->der && !nodo_buscado->izq)
     {
-        free(nodo);
+        free(nodo_buscado);
         arbol->tam--;
 
-        *puntero = NULL;
+        *nodo_buscado_puntero = NULL;
 
         return dato_devolver;
     }
     // Caso 2: Si tiene izq buscar el mayor (mayor por izquierda)
-    else if(nodo->izq)
+    else if(nodo_buscado->izq)
     {
-        *puntero = nodo->izq;
-        abb_nodo_t* temp = nodo->izq;
+        *nodo_buscado_puntero = nodo_buscado->izq;
+        abb_nodo_t* temp = nodo_buscado->izq;
         while(temp->der)
         {
             #ifdef DEBUG
@@ -231,13 +183,13 @@ void* abb_borrar_recursivo(abb_t *arbol, const char *clave, abb_nodo_t* nodo, ab
             #endif
             temp = temp->der;
         }
-        temp->der = nodo->der;
+        temp->der = nodo_buscado->der;
     }
     else
     {
         // Caso 3: Analogico al anterior
-        *puntero = nodo->der;
-        abb_nodo_t* temp = nodo->der;
+        *nodo_buscado_puntero = nodo_buscado->der;
+        abb_nodo_t* temp = nodo_buscado->der;
         while(temp->izq)
         {
             #ifdef DEBUG
@@ -245,16 +197,12 @@ void* abb_borrar_recursivo(abb_t *arbol, const char *clave, abb_nodo_t* nodo, ab
             #endif
             temp = temp->izq;
         }
-        temp->izq = nodo->izq;
+        temp->izq = nodo_buscado->izq;
     }
     arbol->tam--;
-    free(nodo);
+    free(nodo_buscado);
     return dato_devolver;
-}
 
-void* abb_borrar(abb_t *arbol, const char *clave) {
-    if(!arbol || !clave || !arbol->raiz) return NULL;
-    return abb_borrar_recursivo(arbol, clave, arbol->raiz, &arbol->raiz);
 }
 
 void abb_destruir_recursivo(abb_nodo_t* nodo, abb_destruir_dato_t destruir_dato) {
