@@ -22,9 +22,6 @@ typedef struct abb {
     abb_comparar_clave_t comparar;
     abb_destruir_dato_t destruir;
     abb_nodo_t* raiz;
-    //abb_nodo_t** cache;
-    abb_nodo_t** menor;
-    abb_nodo_t** mayor;
     size_t tam;
 } abb_t;
 
@@ -35,9 +32,6 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato) {
     arbol->comparar = cmp;
     arbol->destruir = destruir_dato;
     arbol->raiz = NULL;
-    //arbol->cache = NULL;
-    arbol->mayor = NULL;
-    arbol->menor = NULL;
     arbol->tam = 0;
 
     return arbol;
@@ -103,34 +97,6 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato) {
     }
 
     return true;
-
-    /*
-    // COMPARAR
-    int comp;
-
-    if(arbol->mayor)
-    {
-        comp = arbol->comparar(nuevo_nodo->clave, (*arbol->mayor)->clave);
-
-        if( comp > 0 || comp == 0 )
-            return guardar_recursivo(arbol, nuevo_nodo, arbol->mayor);
-    }
-
-    if(arbol->menor)
-    {
-        comp = arbol->comparar(nuevo_nodo->clave, (*arbol->menor)->clave);
-
-        if( comp < 0 || comp == 0 )
-            return guardar_recursivo(arbol, nuevo_nodo, arbol->menor);
-    }
-
-    // GUARDAR
-    if( arbol->mayor && arbol->comparar(nodo->clave, (*arbol->mayor)->clave ) > 0 )
-        arbol->mayor = raiz;
-
-    if( arbol->menor && arbol->comparar(nodo->clave, (*arbol->menor)->clave ) < 0 )
-        arbol->menor = raiz;
-    */
 }
 
 void* abb_obtener(const abb_t *arbol, const char *clave) {
