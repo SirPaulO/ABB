@@ -234,7 +234,7 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     unsigned* valores[largo];
 
-    if (debug) print_test("Almacenando", true);
+    if (debug) print_test("Guardando", true);
     // Inserta 'largo' parejas en el abb
     bool ok = true;
     for (unsigned i = 0; i < largo; i++) {
@@ -271,7 +271,7 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     if (debug) print_test("Borrando", true);
     // Verifica que borre y devuelva los valores correctos
     for (size_t i = 0; i < largo; i++) {
-        ok = abb_borrar(abb, claves[largo-1-i]) == valores[largo-1-i];
+        ok = abb_borrar(abb, claves[i]) == valores[i];
         if (!ok)
             break;
     }

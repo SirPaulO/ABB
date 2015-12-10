@@ -5,8 +5,8 @@
 #ifdef DEBUG
 #include <stdio.h>
 #endif
-
 #include "pila.h"
+#include <stdio.h>
 
 typedef int (*abb_comparar_clave_t) (const char *, const char *);
 typedef void (*abb_destruir_dato_t) (void *);
@@ -124,51 +124,48 @@ void* abb_borrar(abb_t *arbol, const char *clave) {
     if(!nodo_buscado) return NULL;
 
     void* dato_devolver = nodo_buscado->dato;
-    free(nodo_buscado->clave);
 
     // 2) Redireccion de punteros izq/der
     // Caso 1: No tiene hijos
     if(!nodo_buscado->der && !nodo_buscado->izq)
     {
-        free(nodo_buscado);
-        arbol->tam--;
-
         *nodo_buscado_puntero = NULL;
-
-        return dato_devolver;
     }
-    // Caso 2: Si tiene izq buscar el mayor (mayor por izquierda)
-    else if(nodo_buscado->izq)
+    // Caso 2: Tiene un solo hijo
+    else if(!nodo_buscado->der && nodo_buscado->izq)
     {
         *nodo_buscado_puntero = nodo_buscado->izq;
+    }
+    else if(nodo_buscado->der && !nodo_buscado->izq)
+    {
+        *nodo_buscado_puntero = nodo_buscado->der;
+    }
+    // Caso 3: Buscar el mayor (mayor por izquierda)
+    else if(nodo_buscado->izq && nodo_buscado->der)
+    {
+
         abb_nodo_t* temp = nodo_buscado->izq;
-        while(temp->der)
+        while(temp->der != NULL)
         {
             #ifdef DEBUG
             printf("Clave: %s\n", temp->clave);
             #endif
             temp = temp->der;
         }
-        temp->der = nodo_buscado->der;
-    }
-    else
-    {
-        // Caso 3: Analogico al anterior
-        *nodo_buscado_puntero = nodo_buscado->der;
-        abb_nodo_t* temp = nodo_buscado->der;
-        while(temp->izq)
-        {
-            #ifdef DEBUG
-            printf("Clave: %s\n", temp->clave);
-            #endif
-            temp = temp->izq;
-        }
-        temp->izq = nodo_buscado->izq;
+        // Martin B. Theory.
+        char* clave_copiada = copiar_clave2(temp->clave);
+        void* dato = abb_borrar(arbol, clave_copiada);
+        free(nodo_buscado->clave);
+        nodo_buscado->clave = clave_copiada;
+        nodo_buscado->dato = dato;
+        return dato_devolver;
+        //*nodo_buscado_puntero = nodo_buscado->izq;
+        //temp->der = nodo_buscado->der;
     }
     arbol->tam--;
+    free(nodo_buscado->clave);
     free(nodo_buscado);
     return dato_devolver;
-
 }
 
 void abb_destruir_recursivo(abb_nodo_t* nodo, abb_destruir_dato_t destruir_dato) {
